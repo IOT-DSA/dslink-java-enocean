@@ -1,0 +1,3 @@
+rootProject.name = "dslink-java-enocean"
+
+include ':dslink-java-enocean'
