@@ -126,6 +126,10 @@ public class OceanPoint {
 			if (!event.isFromExternalSource()) {
     			return;
     		}
+			if (device.conn.module == null) {
+				device.conn.stop();
+				return;
+			}
     		Value newval = event.getCurrent();
     		long targetId = device.node.getAttribute("sender id").getNumber().longValue();
     		int baseIdOffset = device.node.getAttribute("base id offset").getNumber().intValue();

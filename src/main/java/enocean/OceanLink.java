@@ -90,8 +90,6 @@ public class OceanLink {
 			
 		}
 		
-		
-		
 		try {
 			Providers.add(ExecutorServiceProvider.class, new ExecutorServiceProviderImpl(new ScheduledThreadPoolExecutor(32)));
 		} catch (Exception e) {}
@@ -106,11 +104,27 @@ public class OceanLink {
 			Providers.add(TimerProvider.class, tp);
 		} catch (Exception e) {}
 		
+		restoreLastSession();
+		
 		Action act = getAddSerialAction();
 		node.createChild("add connection").setAction(act).build().setSerializable(false);
 		
 		act = new Action(Permission.READ, new PortScanHandler());
 		node.createChild("scan for serial ports").setAction(act).build().setSerializable(false);
+	}
+	
+	public void restoreLastSession() {
+		if (node.getChildren() == null) return;
+		for (Node child: node.getChildren().values()) {
+			Value commPortId = child.getAttribute("comm port id");
+			Value baseIdOffset = child.getAttribute("base id offset"); 
+			if (commPortId!=null && baseIdOffset!=null) {
+				OceanConn oc = new OceanConn(getMe(), child);
+				oc.restoreLastSession();
+			} else {
+				node.removeChild(child);
+			}
+		}
 	}
 		
 	private Action getAddSerialAction() {
@@ -136,7 +150,6 @@ public class OceanLink {
 			Node child = node.createChild(name).build();
 			child.setAttribute("comm port id", new Value(commPort));
 			child.setAttribute("base id offset", new Value(baseIdOffset));
-			child.setSerializable(false); //TODO: remove this line
 			
 			OceanConn conn = new OceanConn(getMe(), child);
 			conn.init();

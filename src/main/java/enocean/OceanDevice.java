@@ -36,20 +36,43 @@ public class OceanDevice {
 	Profile profile;
 	boolean learnable = true;
 	boolean learned = false;
+	private boolean enabled;
 	
-	OceanDevice(OceanConn c, Node n) {
+	OceanDevice(OceanConn c, Node n, boolean e) {
 		conn = c;
 		node = n;
-		
+		enabled = e;
+	}
+	
+	void enable() {
+		if (!enabled) {
+			enabled = true;
+			init();
+		}
+	}
+	
+	void disable() {
+		enabled = false;
+	}
+	
+	void init() {
+		if (conn.module == null) conn.stop();
 		Action act = new Action(Permission.READ, new RemoveHandler());
-		node.createChild("remove").setAction(act).build().setSerializable(false);
+		Node anode = node.getChild("remove");
+        if (anode == null) node.createChild("remove").setAction(act).build().setSerializable(false);
+        else anode.setAction(act);
+        
+        act = getEditAction();
+		anode = node.getChild("edit");
+		if (anode == null) {
+			anode = node.createChild("edit").setAction(act).build();
+			anode.setSerializable(false);
+		} else {
+			anode.setAction(act);
+		}
 		
-		act = getEditAction();
-		node.createChild("edit").setAction(act).build().setSerializable(false);
-		
-		setupPoints();
+		if (enabled) setupPoints();
 		//learnIn();
-		
 	}
 	
 	private Action getEditAction() {
@@ -71,7 +94,9 @@ public class OceanDevice {
 		String profname = node.getAttribute("profile").getString();
 		profile = Profile.getProfile(profname);
 		for (String id: profile.getPointIds()) {
-			Node pnode = node.createChild(conn.link.tryToTranslate("enocean.profile."+profile.name+"."+id)).build();
+			String name = conn.link.tryToTranslate("enocean.profile."+profile.name+"."+id);
+			node.removeChild(name);
+			Node pnode = node.createChild(name).build();
 			pnode.setAttribute("id", new Value(id));
 			points.put(id, new OceanPoint(this, pnode));
 		}
@@ -81,7 +106,6 @@ public class OceanDevice {
 		public void handle(ActionResult event) {
 			//String name = event.getParameter("name", ValueType.STRING).getString();
 			String profName = conn.link.translateBack(event.getParameter("profile").getString().replace("%2C", ","));
-			String oldProf = profile.name;
 			profile = Profile.getProfile(profName);
 			long senderId = Long.parseLong(event.getParameter("sender id", ValueType.STRING).getString(), 16);
 			long security = Long.parseLong(event.getParameter("security code", ValueType.STRING).getString(), 16);
@@ -92,7 +116,7 @@ public class OceanDevice {
 			node.setAttribute("security code", new Value(security));
 			node.setAttribute("base id offset", new Value(baseIdOffset));
 			
-			if (!oldProf.equals(profile.name)) setupPoints();
+			init();
 			//learnIn();
 			
 		}
@@ -131,6 +155,10 @@ public class OceanDevice {
 			DataValue value = telegram.getValue(pt.id);
 			if (value != null) pt.update(new PointValueTime(value, System.currentTimeMillis()));
 		}
+	}
+	
+	void restoreLastSession() {
+		init();
 	}
 
 }

@@ -17,12 +17,14 @@ import org.slf4j.LoggerFactory;
 import org.vertx.java.core.Handler;
 
 import com.serotonin.m2m2.module.SerialPortListDefinition;
+import com.serotonin.messaging.TimeoutException;
 import com.serotonin.util.ThreadUtils;
 
 import esp3.EnOceanModule;
 import esp3.EnOceanModuleListener;
 import esp3.message.RadioOrg;
 import esp3.message.TelegramData;
+import esp3.message.request.reman.Ping;
 import esp3.message.request.reman.QueryId;
 import esp3.message.request.reman.Unlock;
 import esp3.profile.Profile;
@@ -79,15 +81,19 @@ public class OceanConn implements EnOceanModuleListener {
 		module.addListener(this);
         if (module != null) try {
 			module.init();
+			statnode.setValue(new Value("Connected."));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			LOGGER.error("EnOceanModule.init() error", e);
 			statnode.setValue(new Value("Error initializing connection."));
 			//stop();
 			module = null;
-			return;
 		}
-        statnode.setValue(new Value("Connected."));
+        
+        act = new Action(Permission.READ, new RestartHandler());
+        anode = node.getChild("restart");
+        if (anode == null) node.createChild("restart").setAction(act).build().setSerializable(false);
+        else anode.setAction(act);
         
         if (module != null) {
         	act = new Action(Permission.READ, new UnlockQueryHandler());
@@ -112,8 +118,42 @@ public class OceanConn implements EnOceanModuleListener {
 			anode = node.getChild("add device");
 			if (anode == null) node.createChild("add device").setAction(act).build().setSerializable(false);
 			else anode.setAction(act);
+			
+			act = new Action(Permission.READ, new StopHandler());
+			anode = node.getChild("stop");
+			if (anode == null) node.createChild("stop").setAction(act).build().setSerializable(false);
+			else anode.setAction(act);
+			
+			for (OceanDevice od: devices) od.enable();
         }
         
+	}
+	
+	public void restoreLastSession() {
+		init();
+		if (node.getChildren() == null) return;
+		for (Node child: node.getChildren().values()) {
+			if (child.getName().equals("Devices")) devsNode = child;
+			else if (child != statnode && child != discNode && child.getAction() == null) node.removeChild(child);
+		}
+		if (devsNode == null || devsNode.getChildren() == null) return;
+		for (Node child: devsNode.getChildren().values()) {
+			restoreDevice(child);
+		}
+	}
+	
+	private void restoreDevice(Node child) {
+		Value senderId = child.getAttribute("sender id");
+		Value profile = child.getAttribute("profile");
+		Value security = child.getAttribute("security code");
+		Value baseIdOffset = child.getAttribute("base id offset");
+		if (senderId!=null && profile!=null && security!=null && baseIdOffset!=null) {
+			OceanDevice od = new OceanDevice(getMe(), child, (module!=null));
+			devices.add(od);
+			od.restoreLastSession();
+		} else if (child.getAction() == null) {
+			devsNode.removeChild(child);
+		}
 	}
 	
 	private class UnlockQueryHandler implements Handler<ActionResult> {
@@ -128,16 +168,33 @@ public class OceanConn implements EnOceanModuleListener {
 	            ThreadUtils.sleep(1000);
 
 	            module.send(new QueryId());
-	        }
-	        catch (IOException e) {
+	        } catch (NumberFormatException e) {
+                LOGGER.error("enocean.badSecurityCode");
+	        } catch (IOException e) {
 	            LOGGER.debug("", e);
 	        }
 		}
 	}
 	
-	private static class PingHandler implements Handler<ActionResult> {
+	private class PingHandler implements Handler<ActionResult> {
 		public void handle(ActionResult event) {
-			LOGGER.debug("Ping does nothing!");
+			long pingId = Long.parseLong(event.getParameter("address", ValueType.STRING).getString(), 16);
+
+            try {
+				Ping ping = module.send(new Ping(pingId));
+				Profile profile = Profile.getProfile(ping.getRorg(), ping.getFunc(), ping.getType());
+				if (profile == null) {
+				    LOGGER.debug("enocean.unknownEEP: " + Profile.prettyEEP(ping.getRorg(), ping.getFunc(), ping.getType()));
+				} else {
+				    enoceanNewSender(pingId, profile, ping.getRssi());
+				}
+            } catch (NumberFormatException e) {
+                LOGGER.error("enocean.badPingAddress");
+            } catch (TimeoutException e) {
+            	LOGGER.error("enocean.noPingResponse");
+            } catch (IOException e) {
+                LOGGER.debug("", e);
+            }
 		}
 	}
 	
@@ -154,16 +211,34 @@ public class OceanConn implements EnOceanModuleListener {
 		node.getParent().removeChild(node);
 	}
 	
-	private void stop() {
+	void stop() {
 		if (module != null) {
 			module.removeListener(getMe());
 			module.destroy();
 			module = null;
-			
+			for (OceanDevice od: devices) od.disable();
 		}
-		
+		node.removeChild("stop");
+		node.removeChild("unlock and query");
+		node.removeChild("ping");
+		node.removeChild("add device");
 		statnode.setValue(new Value("Stopped"));
 	}
+	
+	private class StopHandler implements Handler<ActionResult> {
+		public void handle(ActionResult event) {
+			stop();
+		}
+	}
+	
+	private class RestartHandler implements Handler<ActionResult> {
+		public void handle(ActionResult event) {
+			stop();
+			init();
+		}
+	}
+	
+	
 	
 	Action getEditAction() {
 		Action act = new Action(Permission.READ, new EditHandler());
@@ -200,8 +275,9 @@ public class OceanConn implements EnOceanModuleListener {
 	}
 	
 	public void enoceanTelegram(long senderId, TelegramData telegram) {
+		LOGGER.debug("got telegram from " + Long.toString(senderId, 16));
 		for (OceanDevice dev: devices) {
-			if (new Value(senderId).equals(dev.node.getAttribute("sender id"))) {
+			if (dev.node.getAttribute("sender id") != null && senderId == dev.node.getAttribute("sender id").getNumber().longValue()) {
 				dev.telegram(telegram);
 			}
 		}
@@ -209,8 +285,9 @@ public class OceanConn implements EnOceanModuleListener {
 	}
 
 	public Profile enoceanSenderProfile(long senderId) {
+		LOGGER.debug("got enoceanSenderProfile call from " + Long.toString(senderId, 16));
 		for (OceanDevice dev: devices) {
-			if (new Value(senderId).equals(dev.node.getAttribute("sender id"))) {
+			if (dev.node.getAttribute("sender id") != null && senderId == dev.node.getAttribute("sender id").getNumber().longValue()) {
 				String profname = dev.node.getAttribute("profile").getString();
 				return Profile.getProfile(profname);
 			}
@@ -248,12 +325,12 @@ public class OceanConn implements EnOceanModuleListener {
     	// Check if the device is already in the data source.
     	if (discNode != null && discNode.getChildren() != null) {
     		for (Node child: discNode.getChildren().values()) {
-    			if (new Value(senderId).equals(child.getAttribute("senderId"))) discNode.removeChild(child);
+    			if (child.getAttribute("sender id") != null && senderId == child.getAttribute("sender id").getNumber().longValue()) discNode.removeChild(child);
     		}
     	}
     	
     	for (OceanDevice dev: devices) {
-    		if (new Value(senderId).equals(dev.node.getAttribute("sender id"))) return;
+    		if (dev.node.getAttribute("sender id") != null && senderId == dev.node.getAttribute("sender id").getNumber().longValue()) return;
     	}
 
     	// Not already in the list. Add it.
@@ -306,7 +383,7 @@ public class OceanConn implements EnOceanModuleListener {
 				security = Long.parseLong(event.getParameter("security code", ValueType.STRING).getString(), 16);
 				if (discNode != null && discNode.getChildren() != null) {
 		    		for (Node child: discNode.getChildren().values()) {
-		    			if (new Value(senderId).equals(child.getAttribute("senderId"))) discNode.removeChild(child);
+		    			if (child.getAttribute("sender id") != null && senderId == child.getAttribute("sender id").getNumber().longValue()) discNode.removeChild(child);
 		    		}
 		    	}
 			}
@@ -318,7 +395,9 @@ public class OceanConn implements EnOceanModuleListener {
 			newNode.setAttribute("profile", new Value(profile.name));
 			newNode.setAttribute("security code", new Value(security));
 			newNode.setAttribute("base id offset", new Value(0));
-			devices.add(new OceanDevice(getMe(), newNode));
+			OceanDevice od = new OceanDevice(getMe(), newNode, (module!=null));
+			devices.add(od);
+			od.init();
 			
 		}
 	}

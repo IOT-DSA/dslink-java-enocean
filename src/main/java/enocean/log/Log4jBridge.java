@@ -13,11 +13,11 @@ public class Log4jBridge implements LogBridge {
 
     private LogLevel level;
 
-    @Override
+    //@Override
     public void configure() {
     }
 
-    @Override
+    //@Override
     public void setLevel(LogLevel level) {
         Logger logger = org.apache.log4j.LogManager.getRootLogger();
         switch (level) {
@@ -35,6 +35,8 @@ public class Log4jBridge implements LogBridge {
                 break;
             case TRACE:
                 level = LogLevel.DEBUG;
+                logger.setLevel(Level.DEBUG);
+                break;
             case DEBUG:
                 logger.setLevel(Level.DEBUG);
                 break;
