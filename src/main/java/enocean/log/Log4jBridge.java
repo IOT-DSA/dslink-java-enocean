@@ -33,11 +33,10 @@ public class Log4jBridge implements LogBridge {
             case INFO:
                 logger.setLevel(Level.INFO);
                 break;
+            case TRACE:
+                level = LogLevel.DEBUG;
             case DEBUG:
                 logger.setLevel(Level.DEBUG);
-                break;
-            case TRACE:
-                logger.setLevel(Level.TRACE);
                 break;
             default:
                 throw new RuntimeException("Unknown log level: " + level);
