@@ -6,9 +6,8 @@ import esp3.profile.a5.xml.Func;
 import esp3.profile.a5.xml.Rorg;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -16,7 +15,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ProfilesGenerator {
 
-    private final Logger logger = LoggerFactory.getLogger(ProfilesGenerator.class);
+    private final Logger logger = LogManager.getLogger(ProfilesGenerator.class);
 
     public List<Profile> getProfiles() {
         Rorg rorg = null;
@@ -25,7 +24,7 @@ public class ProfilesGenerator {
             javax.xml.bind.Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
             rorg = (Rorg) unmarshaller.unmarshal(this.getClass().getResourceAsStream("/eep2.6.A5.xml")); //NOI18N
         } catch (javax.xml.bind.JAXBException ex) {
-            logger.error("", ex);
+            logger.error(ex);
         }
 
         List<Profile> list = new LinkedList<>();

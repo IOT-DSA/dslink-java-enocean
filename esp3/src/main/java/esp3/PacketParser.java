@@ -1,5 +1,9 @@
 package esp3;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+
 import esp3.message.CRC;
 import esp3.message.Packet;
 import esp3.message.PacketType;
@@ -11,11 +15,9 @@ import com.serotonin.messaging2.IncomingMessage;
 import com.serotonin.messaging2.MessageParseException;
 import com.serotonin.messaging2.MessageParser;
 import com.serotonin.util.queue.ByteQueue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PacketParser implements MessageParser {
-    private static final Logger logger =  LoggerFactory.getLogger(PacketParser.class.getName());
+    private static final Logger logger =  LogManager.getLogger(PacketParser.class.getName());
 
     private int pos;
     private int dataLength;
