@@ -132,6 +132,7 @@ public class OceanDevice {
 		conn.devices.remove(this);
 		node.clearChildren();
 		node.getParent().removeChild(node);
+		conn.module.clearKnownDevices();
 	}
 	
 	void learnIn() {

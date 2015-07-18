@@ -275,17 +275,16 @@ public class OceanConn implements EnOceanModuleListener {
 	}
 	
 	public void enoceanTelegram(long senderId, TelegramData telegram) {
-		LOGGER.debug("got telegram from " + Long.toString(senderId, 16));
+		LOGGER.info("got telegram from " + Long.toString(senderId, 16));
 		for (OceanDevice dev: devices) {
 			if (dev.node.getAttribute("sender id") != null && senderId == dev.node.getAttribute("sender id").getNumber().longValue()) {
 				dev.telegram(telegram);
 			}
 		}
-		
 	}
 
 	public Profile enoceanSenderProfile(long senderId) {
-		LOGGER.debug("got enoceanSenderProfile call from " + Long.toString(senderId, 16));
+		LOGGER.info("got enoceanSenderProfile call from " + Long.toString(senderId, 16));
 		for (OceanDevice dev: devices) {
 			if (dev.node.getAttribute("sender id") != null && senderId == dev.node.getAttribute("sender id").getNumber().longValue()) {
 				String profname = dev.node.getAttribute("profile").getString();
@@ -325,7 +324,7 @@ public class OceanConn implements EnOceanModuleListener {
     	// Check if the device is already in the data source.
     	if (discNode != null && discNode.getChildren() != null) {
     		for (Node child: discNode.getChildren().values()) {
-    			if (child.getAttribute("sender id") != null && senderId == child.getAttribute("sender id").getNumber().longValue()) discNode.removeChild(child);
+    			if (child.getAttribute("senderId") != null && senderId == child.getAttribute("senderId").getNumber().longValue()) discNode.removeChild(child);
     		}
     	}
     	
@@ -383,7 +382,7 @@ public class OceanConn implements EnOceanModuleListener {
 				security = Long.parseLong(event.getParameter("security code", ValueType.STRING).getString(), 16);
 				if (discNode != null && discNode.getChildren() != null) {
 		    		for (Node child: discNode.getChildren().values()) {
-		    			if (child.getAttribute("sender id") != null && senderId == child.getAttribute("sender id").getNumber().longValue()) discNode.removeChild(child);
+		    			if (child.getAttribute("senderId") != null && senderId == child.getAttribute("senderId").getNumber().longValue()) discNode.removeChild(child);
 		    		}
 		    	}
 			}
