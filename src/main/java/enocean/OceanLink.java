@@ -25,6 +25,8 @@ import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.actions.Parameter;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
+import org.dsa.iot.dslink.serializer.Deserializer;
+import org.dsa.iot.dslink.serializer.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vertx.java.core.Handler;
@@ -49,16 +51,20 @@ public class OceanLink {
 	
 	private Node node;
 	final Set<OceanConn> conns = new HashSet<OceanConn>();
+	final Serializer copySerializer;
+	final Deserializer copyDeserializer;
 	
 	private final Map<String, String> translations = new HashMap<String, String>();
 	private final Map<String, String> translationsBack = new HashMap<String, String>();
 	
-	private OceanLink(Node node) {
+	private OceanLink(Node node, Serializer copyser, Deserializer copydeser) {
 		this.node = node;
+		this.copySerializer = copyser;
+		this.copyDeserializer = copydeser;
 	}
 	
-	public static void start(Node parent) {
-		OceanLink ocean = new OceanLink(parent);
+	public static void start(Node parent, Serializer copyser, Deserializer copydeser) {
+		OceanLink ocean = new OceanLink(parent, copyser, copydeser);
 		ocean.init();
 	}
 	

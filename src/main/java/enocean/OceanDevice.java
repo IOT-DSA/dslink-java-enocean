@@ -42,6 +42,7 @@ public class OceanDevice {
 		conn = c;
 		node = n;
 		enabled = e;
+		conn.devices.add(this);
 	}
 	
 	void enable() {
@@ -104,21 +105,33 @@ public class OceanDevice {
 	
 	private class EditHandler implements Handler<ActionResult> {
 		public void handle(ActionResult event) {
-			//String name = event.getParameter("name", ValueType.STRING).getString();
+			String name = event.getParameter("name", ValueType.STRING).getString();
 			String profName = conn.link.translateBack(event.getParameter("profile").getString().replace("%2C", ","));
 			profile = Profile.getProfile(profName);
 			long senderId = Long.parseLong(event.getParameter("sender id", ValueType.STRING).getString(), 16);
 			long security = Long.parseLong(event.getParameter("security code", ValueType.STRING).getString(), 16);
 			long baseIdOffset = event.getParameter("base id offset", ValueType.NUMBER).getNumber().longValue();
 			
-			node.setAttribute("sender id", new Value(senderId));
-			node.setAttribute("profile", new Value(profile.name));
-			node.setAttribute("security code", new Value(security));
-			node.setAttribute("base id offset", new Value(baseIdOffset));
-			
-			init();
-			//learnIn();
-			
+			if (name != null && !name.equals(node.getName())) {
+				Node newNode = node.getParent().createChild(name).build();
+				newNode.setAttribute("sender id", new Value(senderId));
+				newNode.setAttribute("profile", new Value(profile.name));
+				newNode.setAttribute("security code", new Value(security));
+				newNode.setAttribute("base id offset", new Value(baseIdOffset));
+				
+				remove();
+				OceanDevice od = new OceanDevice(conn, newNode, enabled);
+				od.restoreLastSession();
+			} else {
+				
+				node.setAttribute("sender id", new Value(senderId));
+				node.setAttribute("profile", new Value(profile.name));
+				node.setAttribute("security code", new Value(security));
+				node.setAttribute("base id offset", new Value(baseIdOffset));
+				
+				init();
+				//learnIn();
+			}
 		}
 	}
 	

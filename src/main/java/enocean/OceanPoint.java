@@ -9,7 +9,6 @@ import org.dsa.iot.dslink.node.Writable;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValuePair;
 import org.dsa.iot.dslink.node.value.ValueType;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vertx.java.core.Handler;
@@ -36,9 +35,7 @@ public class OceanPoint {
 	private final Profile profile;
 	//private final int dataType;
 	private final Node node;
-	private final Node valueNode;
 	private final Node dvalueNode;
-	private final Node timeNode;
 	String id;
 	private boolean settable = false;
 	
@@ -48,10 +45,9 @@ public class OceanPoint {
 		node = n;
 		id = node.getAttribute("id").getString();
 		
-		valueNode = node.createChild("Value").setValueType(getValueType()).build();
+		node.setValueType(getValueType());
 		if (profile.getDataTypeId(id) == DataTypes.NUMERIC) dvalueNode = node.createChild("Display Value").setValueType(ValueType.STRING).build();
 		else dvalueNode = null;
-		timeNode = node.createChild("Time").setValueType(ValueType.STRING).build();
 		
 		 if (profile.isOutput(id)) {
 			 device.learnIn();
@@ -92,7 +88,6 @@ public class OceanPoint {
 		int dataType = profile.getDataTypeId(id);
 		TextRenderer tr = profile.createTextRenderer(id);
 		Value dval = new Value(tr.getText(pvt.getValue(), TextRenderer.HINT_FULL));
-		Value tval = new Value(new DateTime(pvt.getTime()).toString());
 		Value val;
 		switch (dataType) {
 		case DataTypes.ALPHANUMERIC: {
@@ -101,23 +96,22 @@ public class OceanPoint {
 		case DataTypes.BINARY: val = new Value(pvt.getBooleanValue()); break;
 		case DataTypes.MULTISTATE: {
 			String valstr = tr.getText(pvt.getValue(), TextRenderer.HINT_FULL);
-			Set<String> enums = valueNode.getValueType().getEnums();
-			if (enums != null && !enums.contains(valstr)) valueNode.setValueType(ValueType.STRING);
+			Set<String> enums = node.getValueType().getEnums();
+			if (enums != null && !enums.contains(valstr)) node.setValueType(ValueType.STRING);
 			val = new Value(valstr); break;
 		}
 		case DataTypes.NUMERIC: val = new Value(pvt.getDoubleValue()); break;
 		default: val = dval; break;
 		}
 		
-		valueNode.setValue(val);
+		node.setValue(val);
 		if (dataType == DataTypes.NUMERIC) dvalueNode.setValue(dval);
-		timeNode.setValue(tval);
 		
 		if (settable) {
-			valueNode.setWritable(Writable.WRITE);
-			valueNode.getListener().setValueHandler(new SetHandler());
+			node.setWritable(Writable.WRITE);
+			node.getListener().setValueHandler(new SetHandler());
 		} else {
-			valueNode.setWritable(Writable.NEVER);
+			node.setWritable(Writable.NEVER);
 		}
 	}
 	

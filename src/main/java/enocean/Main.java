@@ -1,11 +1,14 @@
 package enocean;
 
 import enocean.log.Log4jBridge;
+
 import org.dsa.iot.dslink.DSLink;
 import org.dsa.iot.dslink.DSLinkFactory;
 import org.dsa.iot.dslink.DSLinkHandler;
 import org.dsa.iot.dslink.node.Node;
 import org.dsa.iot.dslink.node.NodeManager;
+import org.dsa.iot.dslink.serializer.Deserializer;
+import org.dsa.iot.dslink.serializer.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +33,10 @@ private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 //		provider.start();
 		
 		NodeManager manager = link.getNodeManager();
+		Serializer copyser = new Serializer(manager);
+		Deserializer copydeser = new Deserializer(manager);
         Node superRoot = manager.getNode("/").getNode();
-        OceanLink.start(superRoot);
+        OceanLink.start(superRoot, copyser, copydeser);
 	}
 	
 }

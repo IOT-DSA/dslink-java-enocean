@@ -15,6 +15,7 @@ import org.dsa.iot.dslink.node.value.ValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.json.JsonObject;
 
 import com.serotonin.m2m2.module.SerialPortListDefinition;
 import com.serotonin.messaging.TimeoutException;
@@ -115,6 +116,7 @@ public class OceanConn implements EnOceanModuleListener {
         	for (Profile p: Profile.values()) enums.add(link.tryToTranslate("enocean.profile."+p.name).replace(",", "%2C"));
         	act.addParameter(new Parameter("profile", ValueType.makeEnum(enums)));
         	act.addParameter(new Parameter("security code", ValueType.STRING, new Value("0")));
+        	act.addParameter(new Parameter("base id offset", ValueType.NUMBER));
 			anode = node.getChild("add device");
 			if (anode == null) node.createChild("add device").setAction(act).build().setSerializable(false);
 			else anode.setAction(act);
@@ -149,7 +151,6 @@ public class OceanConn implements EnOceanModuleListener {
 		Value baseIdOffset = child.getAttribute("base id offset");
 		if (senderId!=null && profile!=null && security!=null && baseIdOffset!=null) {
 			OceanDevice od = new OceanDevice(getMe(), child, (module!=null));
-			devices.add(od);
 			od.restoreLastSession();
 		} else if (child.getAction() == null) {
 			devsNode.removeChild(child);
@@ -261,17 +262,32 @@ public class OceanConn implements EnOceanModuleListener {
 	
 	private class EditHandler implements Handler<ActionResult> {
 		public void handle(ActionResult event) {
-			//String name = event.getParameter("name", ValueType.STRING).getString();
+			String name = event.getParameter("name", ValueType.STRING).getString();
 			String commPort = event.getParameter("comm port id", ValueType.STRING).getString();
 			long baseIdOffset = event.getParameter("base id offset", ValueType.NUMBER).getNumber().longValue();
 			
 			node.setAttribute("comm port id", new Value(commPort));
 			node.setAttribute("base id offset", new Value(baseIdOffset));
 			
-			stop();
-			init();
-			
+			if (name!=null && !name.equals(node.getName())) {
+				rename(name);
+			} else {
+				stop();
+				init();
+			}
 		}
+	}
+	
+	private void rename(String name) {
+		JsonObject jobj = link.copySerializer.serialize();
+		JsonObject parentobj = jobj;
+		JsonObject nodeobj = parentobj.getObject(node.getName());
+		parentobj.putObject(name, nodeobj);
+		link.copyDeserializer.deserialize(jobj);
+		Node newnode = node.getParent().getChild(name);
+		OceanConn oc = new OceanConn(link, newnode);
+		remove();
+		oc.restoreLastSession();
 	}
 	
 	public void enoceanTelegram(long senderId, TelegramData telegram) {
@@ -334,12 +350,10 @@ public class OceanConn implements EnOceanModuleListener {
 
     	// Not already in the list. Add it.
     	if (discNode == null) return;
-    	Node devNode = discNode.createChild(name).build();
+    	Node devNode = discNode.createChild(name).setValueType(ValueType.NUMBER).setValue(new Value(rssi)).build();
     	devNode.setSerializable(false);
     	devNode.setAttribute("senderId", new Value(senderId));
     	devNode.setAttribute("rssi", new Value(rssi));
-    	devNode.setValueType(ValueType.NUMBER);
-    	devNode.setValue(new Value(rssi));
     	
     	Action act = new Action(Permission.READ, new AddDeviceHandler(devNode));
     	act.addParameter(new Parameter("name", ValueType.STRING, new Value(name)));
@@ -349,6 +363,7 @@ public class OceanConn implements EnOceanModuleListener {
     	}
     	else enums.add(link.tryToTranslate("enocean.profile."+profile.name).replace(",", "%2C"));
     	act.addParameter(new Parameter("profile", ValueType.makeEnum(enums)));
+    	act.addParameter(new Parameter("base id offset", ValueType.NUMBER));
     	devNode.createChild("add").setAction(act).build().setSerializable(false);
     	
 //    	Node child = node.createChild()
@@ -371,6 +386,10 @@ public class OceanConn implements EnOceanModuleListener {
 			String name = event.getParameter("name", ValueType.STRING).getString();
 			String profName = link.translateBack(event.getParameter("profile").getString().replace("%2C", ","));
 			Profile profile = Profile.getProfile(profName);
+			Value baseIdOffVal = event.getParameter("base id offset");
+			long baseIdOff;
+			if (baseIdOffVal != null && baseIdOffVal.getType() == ValueType.NUMBER) baseIdOff = baseIdOffVal.getNumber().longValue();
+			else baseIdOff = getUnusedOffset(profile);
 			long senderId;
 			long security;
 			if (devNode != null) {
@@ -393,12 +412,21 @@ public class OceanConn implements EnOceanModuleListener {
 			newNode.setAttribute("sender id", new Value(senderId));
 			newNode.setAttribute("profile", new Value(profile.name));
 			newNode.setAttribute("security code", new Value(security));
-			newNode.setAttribute("base id offset", new Value(0));
+			newNode.setAttribute("base id offset", new Value(baseIdOff));
 			OceanDevice od = new OceanDevice(getMe(), newNode, (module!=null));
-			devices.add(od);
 			od.init();
 			
 		}
+	}
+	
+	public long getUnusedOffset(Profile profile) {
+		HashSet<Long> used = new HashSet<Long>();
+		for (OceanDevice dev: devices) {
+			if (profile.name.equals(dev.profile.name)) used.add(dev.node.getAttribute("base id offset").getNumber().longValue());
+		}
+		long off = 0;
+		while (used.contains(off)) off += 1;
+		return off;
 	}
 	
 	private OceanConn getMe() {
