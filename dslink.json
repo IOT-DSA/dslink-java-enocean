@@ -1,6 +1,6 @@
 {
   "name": "dslink-java-enocean",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A dslink for enocean",
   "license": "Apache",
   "main": "bin/dslink-java-enocean",
