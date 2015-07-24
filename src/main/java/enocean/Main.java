@@ -19,7 +19,12 @@ private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 	public static void main(String[] args) {
 		//args = new String[] { "-b", "http://localhost:8080/conn", "-l", "debug" };
 		Log4jBridge.init();
-		DSLinkFactory.startResponder("EnOcean", args, new Main());
+		DSLinkFactory.start(args, new Main());
+	}
+	
+	@Override
+	public boolean isResponder() {
+		return true;
 	}
 	
 	@Override

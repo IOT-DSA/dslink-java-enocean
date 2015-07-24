@@ -5,7 +5,7 @@ apply plugin: 'java'
 mainClassName = 'enocean.Main'
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
-version = '0.0.4-SNAPSHOT'
+version = '0.0.5-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -15,7 +15,7 @@ repositories {
 }
  
 dependencies {
-    compile ('org.iot-dsa:dslink:0.5.0-SNAPSHOT') {
+    compile ('org.iot-dsa:dslink:0.6.0') {
         exclude group: 'ch.qos.logback'
     }
     compile project(':esp3')
