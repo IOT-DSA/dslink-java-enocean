@@ -4,8 +4,10 @@ import esp3.profile.Profile;
 import esp3.profile.a5.xml.EnocianType;
 import esp3.profile.a5.xml.Func;
 import esp3.profile.a5.xml.Rorg;
+
 import java.util.LinkedList;
 import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +35,16 @@ public class ProfilesGenerator {
             for (Func func : rorg.getFuncs()) {
                 for (EnocianType enocianType : func.getTypes()) {
                     String id = String.format("%1$s_%2$s_%3$s", rorg.getStringNumber(), func.getStringNumber(), enocianType.getStringNumber());
-                    list.add(new GenericProfile(id, func.getNumber(), enocianType.getNumber(), enocianType));
+                    GenericProfile gprof;
+                    try {
+                    	CustomA5 ca5 = CustomA5.valueOf(id);
+                    	gprof = ca5.getProfile(enocianType);
+                    } catch (Exception e) {
+                    	gprof = null;
+                    }
+                    if (gprof == null) gprof = new GenericProfile(id, func.getNumber(), enocianType.getNumber(), enocianType);
+                    
+                    list.add(gprof);
                 }
             }
         }

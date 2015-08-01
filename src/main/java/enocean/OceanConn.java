@@ -25,6 +25,7 @@ import esp3.EnOceanModule;
 import esp3.EnOceanModuleListener;
 import esp3.message.RadioOrg;
 import esp3.message.TelegramData;
+import esp3.message.request.RadioRequest;
 import esp3.message.request.reman.Ping;
 import esp3.message.request.reman.QueryId;
 import esp3.message.request.reman.Unlock;
@@ -103,6 +104,13 @@ public class OceanConn implements EnOceanModuleListener {
 			if (anode == null) node.createChild("unlock and query").setAction(act).build().setSerializable(false);
 			else anode.setAction(act);
 			
+			act = new Action(Permission.READ, new A5TeachHandler());
+        	act.addParameter(new Parameter("controller profile func", ValueType.STRING, new Value("3F")));
+        	act.addParameter(new Parameter("controller profile type", ValueType.STRING, new Value("7F")));
+			anode = node.getChild("send 4BS (A5) teach telegram");
+			if (anode == null) node.createChild("send 4BS (A5) teach telegram").setAction(act).build().setSerializable(false);
+			else anode.setAction(act);
+			
 			act = new Action(Permission.READ, new PingHandler());
         	act.addParameter(new Parameter("address", ValueType.STRING, new Value("0")));
 			anode = node.getChild("ping");
@@ -168,7 +176,8 @@ public class OceanConn implements EnOceanModuleListener {
 	            // For fun, we'll pause for a sec.
 	            ThreadUtils.sleep(1000);
 
-	            module.send(new QueryId());
+	            module.send(new QueryId(0, 0, 0));
+	            
 	        } catch (NumberFormatException e) {
                 LOGGER.error("enocean.badSecurityCode");
 	        } catch (IOException e) {
@@ -177,6 +186,24 @@ public class OceanConn implements EnOceanModuleListener {
 		}
 	}
 	
+	private class A5TeachHandler implements Handler<ActionResult> {
+		public void handle(ActionResult event) {
+			int func =  (int) Long.parseLong(event.getParameter("controller profile func", ValueType.STRING).getString(), 16);
+			int type =  (int) Long.parseLong(event.getParameter("controller profile type", ValueType.STRING).getString(), 16);
+			
+			byte b2 = (byte) ((type & 0x1F) << 3);
+			byte b1 = (byte) (((func & 0x3F) << 2) | ((type & 0x60) >>> 5));
+			
+			byte[] data = {b1, b2, 0x0, (byte) 0x80};
+	        RadioRequest radreq = new RadioRequest(RadioOrg.fourBS, data, 0);
+	        try {
+	        	module.send(radreq);
+			} catch (IOException e) {
+				LOGGER.debug("", e);
+			}
+		}
+	}
+ 	
 	private class PingHandler implements Handler<ActionResult> {
 		public void handle(ActionResult event) {
 			long pingId = Long.parseLong(event.getParameter("address", ValueType.STRING).getString(), 16);
@@ -221,6 +248,7 @@ public class OceanConn implements EnOceanModuleListener {
 		}
 		node.removeChild("stop");
 		node.removeChild("unlock and query");
+		node.removeChild("send 4BS (A5) teach telegram");
 		node.removeChild("ping");
 		node.removeChild("add device");
 		statnode.setValue(new Value("Stopped"));

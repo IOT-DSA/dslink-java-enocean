@@ -94,6 +94,7 @@ public class OceanDevice {
 	private void setupPoints() {
 		String profname = node.getAttribute("profile").getString();
 		profile = Profile.getProfile(profname);
+		if (profile == null) return;
 		for (String id: profile.getPointIds()) {
 			String name = conn.link.tryToTranslate("enocean.profile."+profile.name+"."+id);
 			node.removeChild(name);
@@ -101,6 +102,12 @@ public class OceanDevice {
 			pnode.setAttribute("id", new Value(id));
 			points.put(id, new OceanPoint(this, pnode));
 		}
+//		try {
+//			conn.module.send(new QueryStatus(node.getAttribute("sender id").getNumber().longValue()));
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	
 	private class EditHandler implements Handler<ActionResult> {

@@ -53,6 +53,13 @@ public class OceanPoint {
 			 device.learnIn();
 			 if (device.learned) settable = true;
 		 }
+		 
+		 if (settable) {
+				node.setWritable(Writable.WRITE);
+				node.getListener().setValueHandler(new SetHandler());
+			} else {
+				node.setWritable(Writable.NEVER);
+			}
 
 	}
 	
