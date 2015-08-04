@@ -1,6 +1,7 @@
 package esp3.profile;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.haystack.HDictBuilder;
 
@@ -15,6 +16,7 @@ import esp3.message.request.reman.Lock;
 import esp3.message.request.reman.Unlock;
 import esp3.profile.config.ParameterDef;
 import esp3.profile.config.ParameterDef.Type;
+
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
@@ -106,7 +108,7 @@ public class A5_FF_FF extends Profile {
     }
 
     @Override
-    public void setPoint(long targetId, int baseIdOffset, DataValue value, String pointId, EnOceanModule module)
+    public void setPoint(long targetId, int baseIdOffset, DataValue value, String pointId, EnOceanModule module, Map<String, DataValue> allVals)
             throws IOException {
         RadioRequest req;
         if (value.getBooleanValue())

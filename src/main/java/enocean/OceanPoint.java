@@ -1,7 +1,9 @@
 package enocean;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.dsa.iot.dslink.node.Node;
@@ -37,7 +39,7 @@ public class OceanPoint {
 	private final Node node;
 	private final Node dvalueNode;
 	String id;
-	private boolean settable = false;
+	boolean settable = false;
 	
 	OceanPoint(OceanDevice d, Node n) {
 		device = d;
@@ -134,39 +136,50 @@ public class OceanPoint {
     		Value newval = event.getCurrent();
     		long targetId = device.node.getAttribute("sender id").getNumber().longValue();
     		int baseIdOffset = device.node.getAttribute("base id offset").getNumber().intValue();
-    		DataValue value = null;
-    		int dataType = profile.getDataTypeId(id);
-    		switch(dataType) {
-    		case DataTypes.ALPHANUMERIC: value = new AlphanumericValue(newval.getString()); break;
-    		case DataTypes.BINARY: value = new BinaryValue(newval.getBool()); break;
-    		case DataTypes.MULTISTATE: {
-    			TextRenderer tr = profile.createTextRenderer(id);
-    			if (tr instanceof MultistateRenderer) {
-    				MultistateRenderer mtr = (MultistateRenderer) tr;
-    				for (com.serotonin.m2m2.view.text.MultistateValue v: mtr.getMultistateValues()) {
-    					if (v.getText().equals(newval.getString())) {
-    						value = new MultistateValue(v.getKey()); break;
-    					}
-    				}
-    			}
-    			if (value == null) {
-    				LOGGER.error("Invalid multistate value");
-    				return;
-    			}
-    			break;
+    		DataValue value = convertVal(newval);
+    		if (value == null) return;
+    		Map<String, DataValue> allVals = new HashMap<String, DataValue>();
+    		for (OceanPoint pt: device.setpoints) {
+    			DataValue v = pt.convertVal(pt.node.getValue());
+    			allVals.put(pt.id, v);
     		}
-    		case DataTypes.NUMERIC: value = new NumericValue(newval.getNumber().doubleValue()); break;
-    		default: {
-    			LOGGER.error("invalid data type");
-    			return;
-    		}
-    		}
+			
     		try {
-				profile.setPoint(targetId, baseIdOffset, value, id, device.conn.module);
-			} catch (IOException e) {
-				LOGGER.debug("", e);
+				profile.setPoint(targetId, baseIdOffset, value, id, device.conn.module, allVals);
+			} catch (IOException e) {	LOGGER.debug("", e);
 			}
 		}
+	}
+	
+	DataValue convertVal(Value newval) {
+		DataValue value = null;
+		int dataType = profile.getDataTypeId(id);
+		switch(dataType) {
+		case DataTypes.ALPHANUMERIC: value = new AlphanumericValue(newval.getString()); break;
+		case DataTypes.BINARY: value = new BinaryValue(newval.getBool()); break;
+		case DataTypes.MULTISTATE: {
+			TextRenderer tr = profile.createTextRenderer(id);
+			if (tr instanceof MultistateRenderer) {
+				MultistateRenderer mtr = (MultistateRenderer) tr;
+				for (com.serotonin.m2m2.view.text.MultistateValue v: mtr.getMultistateValues()) {
+					if (v.getText().equals(newval.getString())) {
+						value = new MultistateValue(v.getKey()); break;
+					}
+				}
+			}
+			if (value == null) {
+				LOGGER.error("Invalid multistate value");
+				return null;
+			}
+			break;
+		}
+		case DataTypes.NUMERIC: value = new NumericValue(newval.getNumber().doubleValue()); break;
+		default: {
+			LOGGER.error("invalid data type");
+			return null;
+		}
+		}
+		return value;
 	}
 	
 }

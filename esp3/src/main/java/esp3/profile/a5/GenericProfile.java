@@ -9,6 +9,7 @@ import esp3.profile.a5.xml.EnocianType;
 import esp3.profile.a5.xml.Item;
 import esp3.profile.a5.xml.Range;
 import esp3.profile.a5.xml.Scale;
+
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
@@ -18,10 +19,12 @@ import com.serotonin.m2m2.view.text.BinaryTextRenderer;
 import com.serotonin.m2m2.view.text.MultistateRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.util.ArrayUtils;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import org.haystack.HDictBuilder;
 
 /**
@@ -136,19 +139,33 @@ public class GenericProfile extends Profile {
         if (enocianType != null && enocianType.getDatafields() != null) {
             for (DataField dataField : enocianType.getDatafields()) {
                 if (!dataField.isLearn()) {
+                	boolean isOut = false;
+//                	String name = dataField.getData().toLowerCase();
+//                	if (name.contains("setpoint") || name.contains("set point") || name.contains("command")) isOut = true;
                     List<Item> items = dataField.getItems();
                     if (items != null) {
                         if (items.get(0).getScale() != null || items.size() != 2) {
-                            pointInfo.put(dataField.getShortcut(), new PointInfo(DataTypes.MULTISTATE, false));
+                            pointInfo.put(dataField.getShortcut(), new PointInfo(DataTypes.MULTISTATE, isOut));
                         } else {
-                            pointInfo.put(dataField.getShortcut(), new PointInfo(DataTypes.BINARY, false));
+                            pointInfo.put(dataField.getShortcut(), new PointInfo(DataTypes.BINARY, isOut));
                         }
                     } else {
-                        pointInfo.put(dataField.getShortcut(), new PointInfo(DataTypes.NUMERIC, false));
+                        pointInfo.put(dataField.getShortcut(), new PointInfo(DataTypes.NUMERIC, isOut));
                     }
                 }
             }
         }
     }
+    
+//    @Override
+//    public void setPoint(long targetId, int baseIdOffset, DataValue value, String pointId, EnOceanModule module)
+//            throws IOException {
+//    	
+//    }
+//    
+//    @Override
+//    public void learnIn(long securityCode, int baseIdOffset, long targetId, EnOceanModule module) throws IOException {
+//    	
+//    }
 
 }

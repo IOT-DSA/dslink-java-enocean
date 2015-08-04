@@ -36,6 +36,8 @@ abstract public class Profile {
             addProfile(profile);
         }
 
+        addProfile(new A5_3F_81());
+        
         addProfile(new A5_FF_FE());
         addProfile(new A5_FF_FF());
 
@@ -229,7 +231,7 @@ abstract public class Profile {
      * @param module
      * @throws IOException
      */
-    public void setPoint(long targetId, int baseIdOffset, DataValue value, String pointId, EnOceanModule module) throws IOException {
+    public void setPoint(long targetId, int baseIdOffset, DataValue value, String pointId, EnOceanModule module, Map<String, DataValue> allValues) throws IOException {
         throw new NotImplementedException();
     }
 

@@ -1,6 +1,7 @@
 package esp3.profile.a5;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.haystack.HDictBuilder;
 
@@ -37,7 +38,7 @@ public class A5_20_03 extends GenericProfile {
 	}
 	
 	@Override
-    public void setPoint(long targetId, int baseIdOffset, DataValue value, String pointId, EnOceanModule module)
+    public void setPoint(long targetId, int baseIdOffset, DataValue value, String pointId, EnOceanModule module, Map<String, DataValue> allVals)
             throws IOException {
 		double dval = value.getDoubleValue();
 		if (dval < 0) dval = 0;

@@ -37,6 +37,7 @@ public class OceanDevice {
 	boolean learnable = true;
 	boolean learned = false;
 	private boolean enabled;
+	final Set<OceanPoint> setpoints = new HashSet<OceanPoint>();
 	
 	OceanDevice(OceanConn c, Node n, boolean e) {
 		conn = c;
@@ -92,15 +93,19 @@ public class OceanDevice {
 	}
 
 	private void setupPoints() {
+		setpoints.clear();
 		String profname = node.getAttribute("profile").getString();
 		profile = Profile.getProfile(profname);
 		if (profile == null) return;
 		for (String id: profile.getPointIds()) {
 			String name = conn.link.tryToTranslate("enocean.profile."+profile.name+"."+id);
+			name = toLegalName(name);
 			node.removeChild(name);
 			Node pnode = node.createChild(name).build();
 			pnode.setAttribute("id", new Value(id));
-			points.put(id, new OceanPoint(this, pnode));
+			OceanPoint pt = new OceanPoint(this, pnode);
+			points.put(id, pt);
+			if (pt.settable) setpoints.add(pt);
 		}
 //		try {
 //			conn.module.send(new QueryStatus(node.getAttribute("sender id").getNumber().longValue()));
@@ -180,6 +185,25 @@ public class OceanDevice {
 	
 	void restoreLastSession() {
 		init();
+	}
+	
+	static String toLegalName(String s) {
+		if (s == null) return "";
+		while (s.length() > 0 && (s.startsWith("$") || s.startsWith("@"))) {
+			s = s.substring(1);
+		}
+		s = s.replace('%', ' ');
+		s = s.replace('.', ' ');
+		s = s.replace('/', ' ');
+		s = s.replace('\\', ' ');
+		s = s.replace('?', ' ');
+		s = s.replace('*', ' ');
+		s = s.replace(':', ' ');
+		s = s.replace('|', ' ');
+		s = s.replace('"', ' ');
+		s = s.replace('<', ' ');
+		s = s.replace('>', ' ');
+		return s.trim();
 	}
 
 }
