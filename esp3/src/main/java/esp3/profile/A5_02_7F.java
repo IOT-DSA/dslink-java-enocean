@@ -28,7 +28,7 @@ public class A5_02_7F extends Profile {
     }
 
     @Override
-    protected TextRenderer _createTextRenderer(String pointId) {
+    protected TextRenderer _createTextRenderer(String pointId, int caseNum) {
         return new AnalogRenderer("0.0", "${unit}");
     }
 

@@ -3,7 +3,6 @@ package esp3.profile.a5.xml;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -18,6 +17,7 @@ public class EnocianType {
     private String title;
     private String status;
     private List<DataField> datafields;
+    private List<Case> cases;
 
     @Override
     public boolean equals(Object obj) {
@@ -40,10 +40,13 @@ public class EnocianType {
         if (!Objects.equals(this.datafields, other.datafields)) {
             return false;
         }
+        if (!Objects.equals(this.cases, other.cases)) {
+            return false;
+        }
         return true;
     }
 
-    @XmlElementWrapper(name = "case")
+   // @XmlElementWrapper(name = "case")
     @XmlElement(name = "datafield")
     public List<DataField> getDatafields() {
         return datafields;
@@ -51,6 +54,15 @@ public class EnocianType {
 
     public void setDatafields(List<DataField> datafields) {
         this.datafields = datafields;
+    }
+    
+    @XmlElement(name = "case")
+    public List<Case> getCases() {
+    	return cases;
+    }
+    
+    public void setCases(List<Case> cases) {
+    	this.cases = cases;
     }
 
     @XmlTransient
@@ -94,12 +106,13 @@ public class EnocianType {
         hash = 41 * hash + Objects.hashCode(this.title);
         hash = 41 * hash + Objects.hashCode(this.status);
         hash = 41 * hash + Objects.hashCode(this.datafields);
+        hash = 41 * hash + Objects.hashCode(this.cases);
         return hash;
     }
 
     @Override
     public String toString() {
-        return "EnocianType{" + "number=" + number + ", title=" + title + ", status=" + status + ", datafields=" + datafields + '}';
+        return "EnocianType{" + "number=" + number + ", title=" + title + ", status=" + status + ", cases=" + cases + ", datafields=" + datafields + '}';
     }
 
 }

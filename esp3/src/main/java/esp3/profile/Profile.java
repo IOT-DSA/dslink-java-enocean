@@ -18,6 +18,7 @@ import esp3.message.TelegramData;
 import esp3.message.incoming.RadioPacket;
 import esp3.profile.a5.ProfilesGenerator;
 import esp3.profile.config.ParameterList;
+
 import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -61,6 +62,8 @@ abstract public class Profile {
     public final RadioOrg rorg;
     public final int type;
     protected final Map<String, PointInfo> pointInfo = new LinkedHashMap<>();
+    protected final ArrayList<Map<String, PointInfo>> caseInfo = new ArrayList<Map<String, PointInfo>>();
+    
 
     public static Profile getProfile(String name) {
         for (Profile p : PROFILES.values()) {
@@ -111,6 +114,10 @@ abstract public class Profile {
     }
 
     public Profile() {
+    	caseInfo.add(pointInfo);
+    	for (int i=1; i<getNumCases(); i++) {
+    		caseInfo.add(new LinkedHashMap<String, PointInfo>());
+    	}
         this.func = 0;
         this.name = null;
         this.rorg = null;
@@ -118,6 +125,10 @@ abstract public class Profile {
     }
 
     protected Profile(String name, RadioOrg rorg, int func, int type) {
+    	caseInfo.add(pointInfo);
+    	for (int i=1; i<getNumCases(); i++) {
+    		caseInfo.add(new LinkedHashMap<String, PointInfo>());
+    	}
         this.name = name;
         this.rorg = rorg;
         this.func = func;
@@ -128,8 +139,12 @@ abstract public class Profile {
         // Points common to all devices.
         pointInfo.put(DBM, new PointInfo(DataTypes.NUMERIC, false));
     }
-
-    public TextRenderer createTextRenderer(String pointId) {
+    
+    protected int getNumCases() {
+    	return 1;
+    }
+    
+    public TextRenderer createTextRenderer(String pointId, int caseNum) {
         if (DBM.equals(pointId)) {
             RangeRenderer r = new RangeRenderer("0");
             r.addRangeValues(-Double.MAX_VALUE, -90, "0 bars", "red");
@@ -140,7 +155,7 @@ abstract public class Profile {
             return r;
             //            return new AnalogRenderer("0", "${unit}");
         }
-        return _createTextRenderer(pointId);
+        return _createTextRenderer(pointId, caseNum);
     }
 
     public HDictBuilder createUserTags(String pointId) {
@@ -160,34 +175,64 @@ abstract public class Profile {
         return createUserTags(pointId).toDict().toZinc();
     }
 
-    public String defaultPointId() {
-        return pointInfo.keySet().iterator().next();
+    public int defaultCase() {
+    	return 0;
+    }
+    
+    public String defaultPointId(int casenum) {
+    	try {
+    		return caseInfo.get(casenum).keySet().iterator().next();
+    	}catch (Exception e) {
+        	return pointInfo.keySet().iterator().next();
+    	}
     }
 
-    public int getDataTypeId(String pointId) {
-        PointInfo i = pointInfo.get(pointId);
-        return i == null ? DataTypes.UNKNOWN : i.dataTypeId;
+    public int getDataTypeId(String pointId, int casenum) {
+    	try {
+    		PointInfo i = caseInfo.get(casenum).get(pointId);
+    		return i == null ? DataTypes.UNKNOWN : i.dataTypeId;
+    	} catch (Exception e) {
+	        PointInfo i = pointInfo.get(pointId);
+	        return i == null ? DataTypes.UNKNOWN : i.dataTypeId;
+    	}
     }
 
-    public Set<String> getPointIds() {
-        return pointInfo.keySet();
+    public Set<String> getPointIds(int casenum) {
+    	try {
+    		return caseInfo.get(casenum).keySet();
+    	} catch (Exception e) {
+    		return pointInfo.keySet();
+    	}
     }
 
-    public boolean hasId(String pointId) {
-        return pointInfo.containsKey(pointId);
+    public boolean hasId(String pointId, int casenum) {
+    	try {
+    		return caseInfo.get(casenum).containsKey(pointId);
+    	} catch (Exception e) {
+    		return pointInfo.containsKey(pointId);
+    	}
     }
 
-    public boolean isOutput() {
-        for (PointInfo pi : pointInfo.values()) {
-            if (pi.isOutput()) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isOutput(int casenum) {
+    	try {
+			for (PointInfo pi : caseInfo.get(casenum).values()) {
+			    if (pi.isOutput()) {
+			        return true;
+			    }
+			}
+			return false;
+		} catch (Exception e) {
+			for (PointInfo pi : pointInfo.values()) {
+	            if (pi.isOutput()) {
+	                return true;
+	            }
+	        }
+	        return false;
+		}
     }
 
-    public boolean isOutput(String pointId) {
-        PointInfo i = pointInfo.get(pointId);
+    public boolean isOutput(String pointId, int casenum) {
+        PointInfo i = caseInfo.get(casenum).get(pointId);
         return i == null ? false : i.output;
     }
 
@@ -235,7 +280,7 @@ abstract public class Profile {
         throw new NotImplementedException();
     }
 
-    protected abstract TextRenderer _createTextRenderer(String pointId);
+    protected abstract TextRenderer _createTextRenderer(String pointId, int caseNum);
 
     protected abstract void _parseTelegram(RadioPacket radio, TelegramData t);
 

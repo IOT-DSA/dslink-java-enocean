@@ -46,7 +46,7 @@ public class A5_11_01 extends Profile {
     }
 
     @Override
-    protected TextRenderer _createTextRenderer(String pointId) {
+    protected TextRenderer _createTextRenderer(String pointId, int caseNum) {
         if (REP.equals(pointId))
             return new BinaryTextRenderer("Disabled", null, "Enabled", null);
         if (OCC.equals(pointId))

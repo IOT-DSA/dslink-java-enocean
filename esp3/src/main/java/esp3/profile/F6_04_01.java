@@ -24,7 +24,7 @@ public class F6_04_01 extends Profile {
     }
 
     @Override
-    protected TextRenderer _createTextRenderer(String pointId) {
+    protected TextRenderer _createTextRenderer(String pointId, int caseNum) {
         return new BinaryTextRenderer("Empty", null, "Inserted", null);
     }
 

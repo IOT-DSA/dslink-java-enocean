@@ -48,10 +48,10 @@ public class OceanPoint {
 		id = node.getAttribute("id").getString();
 		
 		node.setValueType(getValueType());
-		if (profile.getDataTypeId(id) == DataTypes.NUMERIC) dvalueNode = node.createChild("Display Value").setValueType(ValueType.STRING).build();
+		if (profile.getDataTypeId(id, device.activeCase) == DataTypes.NUMERIC) dvalueNode = node.createChild("Display Value").setValueType(ValueType.STRING).build();
 		else dvalueNode = null;
 		
-		 if (profile.isOutput(id)) {
+		 if (profile.isOutput(id, device.activeCase)) {
 			 device.learnIn();
 			 if (device.learned) settable = true;
 		 }
@@ -68,17 +68,17 @@ public class OceanPoint {
 	
 	
 	private ValueType getValueType() {
-		int dataType = profile.getDataTypeId(id);
+		int dataType = profile.getDataTypeId(id, device.activeCase);
 		switch (dataType) {
 		case DataTypes.ALPHANUMERIC: return ValueType.STRING;
 		case DataTypes.BINARY: {
-			TextRenderer tr = profile.createTextRenderer(id);
+			TextRenderer tr = profile.createTextRenderer(id, device.activeCase);
 			String on = tr.getText(true, TextRenderer.HINT_FULL);
 			String off = tr.getText(false, TextRenderer.HINT_FULL);
 			return ValueType.makeBool(on, off);
 		}
 		case DataTypes.MULTISTATE: {
-			TextRenderer tr = profile.createTextRenderer(id);
+			TextRenderer tr = profile.createTextRenderer(id, device.activeCase);
 			if (tr instanceof MultistateRenderer) {
 				MultistateRenderer mtr = (MultistateRenderer) tr;
 				Set<String> enums = new HashSet<String>();
@@ -94,8 +94,8 @@ public class OceanPoint {
 	}
 	
 	void update(PointValueTime pvt) {
-		int dataType = profile.getDataTypeId(id);
-		TextRenderer tr = profile.createTextRenderer(id);
+		int dataType = profile.getDataTypeId(id, device.activeCase);
+		TextRenderer tr = profile.createTextRenderer(id, device.activeCase);
 		Value dval = new Value(tr.getText(pvt.getValue(), TextRenderer.HINT_FULL));
 		Value val;
 		switch (dataType) {
@@ -140,7 +140,9 @@ public class OceanPoint {
     		if (value == null) return;
     		Map<String, DataValue> allVals = new HashMap<String, DataValue>();
     		for (OceanPoint pt: device.setpoints) {
-    			DataValue v = pt.convertVal(pt.node.getValue());
+    			DataValue v;
+    			if (pt != getMe()) v = pt.convertVal(pt.node.getValue());
+    			else v = value;
     			allVals.put(pt.id, v);
     		}
 			
@@ -152,13 +154,14 @@ public class OceanPoint {
 	}
 	
 	DataValue convertVal(Value newval) {
+		if (newval == null) return null;
 		DataValue value = null;
-		int dataType = profile.getDataTypeId(id);
+		int dataType = profile.getDataTypeId(id, device.activeCase);
 		switch(dataType) {
 		case DataTypes.ALPHANUMERIC: value = new AlphanumericValue(newval.getString()); break;
 		case DataTypes.BINARY: value = new BinaryValue(newval.getBool()); break;
 		case DataTypes.MULTISTATE: {
-			TextRenderer tr = profile.createTextRenderer(id);
+			TextRenderer tr = profile.createTextRenderer(id, device.activeCase);
 			if (tr instanceof MultistateRenderer) {
 				MultistateRenderer mtr = (MultistateRenderer) tr;
 				for (com.serotonin.m2m2.view.text.MultistateValue v: mtr.getMultistateValues()) {
@@ -180,6 +183,12 @@ public class OceanPoint {
 		}
 		}
 		return value;
+	}
+
+
+
+	public OceanPoint getMe() {
+		return this;
 	}
 	
 }

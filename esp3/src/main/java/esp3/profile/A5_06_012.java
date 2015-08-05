@@ -37,7 +37,7 @@ public class A5_06_012 extends Profile {
     }
 
     @Override
-    protected TextRenderer _createTextRenderer(String pointId) {
+    protected TextRenderer _createTextRenderer(String pointId, int caseNum) {
         if (SVC.equals(pointId))
             return new AnalogRenderer("0.00", " V");
         return new AnalogRenderer("0.0", " lx");

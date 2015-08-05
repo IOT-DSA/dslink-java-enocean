@@ -42,7 +42,7 @@ public class A5_11_02 extends Profile {
     }
 
     @Override
-    protected TextRenderer _createTextRenderer(String pointId) {
+    protected TextRenderer _createTextRenderer(String pointId, int caseNum) {
         if (CVAR.equals(pointId))
             return new AnalogRenderer("0.0", "%");
         if (FAN.equals(pointId)) {

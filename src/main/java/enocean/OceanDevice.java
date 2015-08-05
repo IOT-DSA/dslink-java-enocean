@@ -34,6 +34,7 @@ public class OceanDevice {
 	Node node;
 	final Map<String, OceanPoint> points = new HashMap<String, OceanPoint>();
 	Profile profile;
+	int activeCase;
 	boolean learnable = true;
 	boolean learned = false;
 	private boolean enabled;
@@ -97,12 +98,14 @@ public class OceanDevice {
 		String profname = node.getAttribute("profile").getString();
 		profile = Profile.getProfile(profname);
 		if (profile == null) return;
-		for (String id: profile.getPointIds()) {
+		activeCase = profile.defaultCase();
+		for (String id: profile.getPointIds(activeCase)) {
 			String name = conn.link.tryToTranslate("enocean.profile."+profile.name+"."+id);
 			name = toLegalName(name);
 			node.removeChild(name);
 			Node pnode = node.createChild(name).build();
 			pnode.setAttribute("id", new Value(id));
+			pnode.setSerializable(false);
 			OceanPoint pt = new OceanPoint(this, pnode);
 			points.put(id, pt);
 			if (pt.settable) setpoints.add(pt);
@@ -180,6 +183,11 @@ public class OceanDevice {
 		for (OceanPoint pt: points.values()) {
 			DataValue value = telegram.getValue(pt.id);
 			if (value != null) pt.update(new PointValueTime(value, System.currentTimeMillis()));
+		}
+		Integer newCase = telegram.getCase();
+		if (newCase != null && newCase != activeCase) {
+			activeCase = newCase;
+			setupPoints();
 		}
 	}
 	

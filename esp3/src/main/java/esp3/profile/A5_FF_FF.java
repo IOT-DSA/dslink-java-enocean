@@ -84,7 +84,7 @@ public class A5_FF_FF extends Profile {
     }
 
     @Override
-    protected TextRenderer _createTextRenderer(String pointId) {
+    protected TextRenderer _createTextRenderer(String pointId, int caseNum) {
         return new BinaryTextRenderer("Open", null, "Closed", null);
     }
 

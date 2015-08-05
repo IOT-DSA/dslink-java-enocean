@@ -34,7 +34,7 @@ public class F6_03_02 extends Profile {
     }
 
     @Override
-    protected TextRenderer _createTextRenderer(String pointId) {
+    protected TextRenderer _createTextRenderer(String pointId, int caseNum) {
         MultistateRenderer r = new MultistateRenderer();
         r.addMultistateValue(STATE_OFF, "Off", null);
         r.addMultistateValue(STATE_O, "O", null);
