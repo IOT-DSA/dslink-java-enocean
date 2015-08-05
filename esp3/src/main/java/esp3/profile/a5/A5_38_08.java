@@ -7,15 +7,9 @@ import org.haystack.HDictBuilder;
 
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.view.text.TextRenderer;
-
 import esp3.EnOceanModule;
 import esp3.message.RadioOrg;
-import esp3.message.TelegramData;
-import esp3.message.incoming.RadioPacket;
 import esp3.message.request.RadioRequest;
-import esp3.profile.Profile;
-import esp3.profile.Profile.PointInfo;
 import esp3.profile.a5.xml.EnocianType;
 
 public class A5_38_08 extends GenericProfile {

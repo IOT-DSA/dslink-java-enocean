@@ -52,13 +52,13 @@ public class A5_20_03 extends GenericProfile {
 	@Override
     public void setPoint(long targetId, int baseIdOffset, DataValue value, String pointId, EnOceanModule module, Map<String, DataValue> allVals)
             throws IOException {
-		DataValue spsv = allVals.getOrDefault(SPS, new BinaryValue(false));
+		DataValue spsv = allVals.get(SPS);
 		if (spsv == null) spsv = new BinaryValue(false);
 		boolean sps = spsv.getBooleanValue();
-		DataValue vspv = allVals.getOrDefault(VSP, new BinaryValue(false));
+		DataValue vspv = allVals.get(VSP);
 		if (vspv == null) vspv = new BinaryValue(false);
 		boolean vsp = vspv.getBooleanValue();
-		DataValue dvalv = allVals.getOrDefault(ATS, new NumericValue(0));
+		DataValue dvalv = allVals.get(ATS);
 		if (dvalv == null) dvalv = new NumericValue(0);
 		double dval =dvalv.getDoubleValue();
 		if (dval < 0) dval = 0;
