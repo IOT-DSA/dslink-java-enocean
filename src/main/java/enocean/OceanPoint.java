@@ -13,7 +13,7 @@ import org.dsa.iot.dslink.node.value.ValuePair;
 import org.dsa.iot.dslink.node.value.ValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vertx.java.core.Handler;
+import org.dsa.iot.dslink.util.handler.Handler;
 
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;

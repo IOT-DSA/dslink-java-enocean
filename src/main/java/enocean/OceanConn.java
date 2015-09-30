@@ -12,10 +12,10 @@ import org.dsa.iot.dslink.node.actions.ActionResult;
 import org.dsa.iot.dslink.node.actions.Parameter;
 import org.dsa.iot.dslink.node.value.Value;
 import org.dsa.iot.dslink.node.value.ValueType;
+import org.dsa.iot.dslink.util.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.json.JsonObject;
+import org.dsa.iot.dslink.util.handler.Handler;
 
 import com.serotonin.m2m2.module.SerialPortListDefinition;
 import com.serotonin.messaging.TimeoutException;
@@ -308,9 +308,8 @@ public class OceanConn implements EnOceanModuleListener {
 	
 	private void rename(String name) {
 		JsonObject jobj = link.copySerializer.serialize();
-		JsonObject parentobj = jobj;
-		JsonObject nodeobj = parentobj.getObject(node.getName());
-		parentobj.putObject(name, nodeobj);
+		JsonObject nodeobj = jobj.get(node.getName());
+		jobj.put(name, nodeobj);
 		link.copyDeserializer.deserialize(jobj);
 		Node newnode = node.getParent().getChild(name);
 		OceanConn oc = new OceanConn(link, newnode);
