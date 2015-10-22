@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.dsa.iot.dslink.util.log.LogBridge;
 import org.dsa.iot.dslink.util.log.LogLevel;
 import org.dsa.iot.dslink.util.log.LogManager;
+import java.io.File;
 
 /**
  * @author Samuel Grenier
@@ -14,7 +15,7 @@ public class Log4jBridge implements LogBridge {
     private LogLevel level;
 
     //@Override
-    public void configure() {
+    public void configure(File file) {
     }
 
     //@Override
