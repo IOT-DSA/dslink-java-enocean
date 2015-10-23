@@ -18,7 +18,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 	
 	public static void main(String[] args) {
 		//args = new String[] { "-b", "http://localhost:8080/conn", "-l", "debug" };
-		Log4jBridge.init();
+		//Log4jBridge.init();
 		DSLinkFactory.start(args, new Main());
 	}
 	
