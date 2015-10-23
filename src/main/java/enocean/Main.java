@@ -28,8 +28,8 @@ private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 	}
 	
 	@Override
-	public void onResponderConnected(DSLink link){
-		LOGGER.info("Connected");
+	public void onResponderInitialized(DSLink link){
+		LOGGER.info("Initialized");
 		
 //		c = Configuration.autoConfigure();
 //		h = new DSLinkHandlerInstance();
