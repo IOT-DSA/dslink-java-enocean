@@ -52,7 +52,7 @@ public class GenericProfile extends Profile {
 
     @Override
     protected TextRenderer _createTextRenderer(String pointId, int caseNum) {
-    	if (getNumCases() > 1) {
+    	if (getNumCases() > 1 || (enocianType != null && enocianType.getCases() != null)) {
     		for (DataField dataField : enocianType.getCases().get(caseNum).getDatafields()) {
 	            if (!dataField.isLearn() && pointId.equals(dataField.getShortcut())) {
 	                if (dataField.getRange() != null) {
@@ -113,7 +113,7 @@ public class GenericProfile extends Profile {
 
         byte[] userData = radio.getUserData();
         int c = getCaseFromTelegram(radio);
-        if (getNumCases() > 1) {
+        if (getNumCases() > 1 || (enocianType != null && enocianType.getCases() != null)) {
         	for (DataField dataField : enocianType.getCases().get(c).getDatafields()) {
         		int value = ArrayUtils.bitRangeValue(userData, dataField.getBitoffs(), dataField.getBitsize());
         		
@@ -216,7 +216,7 @@ public class GenericProfile extends Profile {
 
     @Override
     protected void createPointInfo() {
-    	if (getNumCases() > 1) {
+    	if (getNumCases() > 1 || (enocianType != null && enocianType.getCases() != null)) {
     		int caseNum = 0;
     		for (Case cas: enocianType.getCases()) {
     			if (cas!=null && cas.getDatafields() != null) {
