@@ -29,13 +29,13 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import jssc.SerialPort;
 import jssc.SerialPortException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 class EnOceanModuleImpl implements MessagingExceptionHandler {
 
-    private static final Logger logger = LogManager.getLogger(EnOceanModuleImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(EnOceanModuleImpl.class);
 
     private final String serialPortId;
     private final long baseId;

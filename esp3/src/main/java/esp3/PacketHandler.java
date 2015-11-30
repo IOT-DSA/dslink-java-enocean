@@ -3,9 +3,6 @@ package esp3;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 
 import esp3.message.RadioOrg;
 import esp3.message.TelegramData;
@@ -17,9 +14,11 @@ import com.serotonin.messaging2.IncomingMessage;
 import com.serotonin.messaging2.IncomingMessageHandler;
 import com.serotonin.messaging2.OutgoingMessage;
 import com.serotonin.util.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PacketHandler implements IncomingMessageHandler {
-    private static final Logger logger =  LogManager.getLogger(PacketHandler.class.getName());
+    private static final Logger logger =  LoggerFactory.getLogger(PacketHandler.class.getName());
 
     private final EnOceanModuleImpl module;
     private final Map<Long, Profile> deviceProfiles = new HashMap<>();

@@ -1,7 +1,5 @@
 package enocean;
 
-import enocean.log.Log4jBridge;
-
 import org.dsa.iot.dslink.DSLink;
 import org.dsa.iot.dslink.DSLinkFactory;
 import org.dsa.iot.dslink.DSLinkHandler;
@@ -18,7 +16,6 @@ private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 	
 	public static void main(String[] args) {
 		//args = new String[] { "-b", "http://localhost:8080/conn", "-l", "debug" };
-		Log4jBridge.init();
 		DSLinkFactory.start(args, new Main());
 	}
 	
