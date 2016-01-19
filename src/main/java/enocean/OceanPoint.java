@@ -1,10 +1,7 @@
 package enocean;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.dsa.iot.dslink.node.Node;
 import org.dsa.iot.dslink.node.Writable;
@@ -105,7 +102,7 @@ public class OceanPoint {
 		case DataTypes.BINARY: val = new Value(pvt.getBooleanValue()); break;
 		case DataTypes.MULTISTATE: {
 			String valstr = tr.getText(pvt.getValue(), TextRenderer.HINT_FULL);
-			Set<String> enums = node.getValueType().getEnums();
+			Collection<String> enums = node.getValueType().getEnums();
 			if (enums != null && !enums.contains(valstr)) node.setValueType(ValueType.STRING);
 			val = new Value(valstr); break;
 		}
