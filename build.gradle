@@ -15,6 +15,7 @@ repositories {
 }
  
 dependencies {
+    compile 'org.iot-dsa:dslink:0.13.0'
     compile project(':esp3')
 }
 
