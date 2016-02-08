@@ -45,7 +45,7 @@ dependencies {
    // compile 'commons-collections:commons-collections:3.2.1'
    // compile 'org.eclipse.jetty:jetty-webapp:9.3.0.v20150612'
    // compile 'javax.websocket:javax.websocket-api:1.1'
-    compile 'org.iot-dsa:logging:0.13.0'
+    compile 'org.iot-dsa:logging:0.14.0'
     compile fileTree('lib')
 }
 
