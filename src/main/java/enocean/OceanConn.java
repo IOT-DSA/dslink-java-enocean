@@ -121,7 +121,7 @@ public class OceanConn implements EnOceanModuleListener {
 			act.addParameter(new Parameter("name", ValueType.STRING));
         	act.addParameter(new Parameter("sender id", ValueType.STRING, new Value("0")));
         	Set<String> enums = new HashSet<String>();
-        	for (Profile p: Profile.values()) enums.add(link.tryToTranslate("enocean.profile."+p.name).replace(",", "%2C"));
+        	for (Profile p: Profile.values()) enums.add(link.tryToTranslate("enocean.profile."+p.name).replace(",", "%2C").replace("+", "%2B"));
         	act.addParameter(new Parameter("profile", ValueType.makeEnum(enums)));
         	act.addParameter(new Parameter("security code", ValueType.STRING, new Value("0")));
         	act.addParameter(new Parameter("base id offset", ValueType.NUMBER));
@@ -386,9 +386,9 @@ public class OceanConn implements EnOceanModuleListener {
     	act.addParameter(new Parameter("name", ValueType.STRING, new Value(name)));
     	Set<String> enums = new HashSet<String>();
     	if (rorg != null) {
-    		for (Profile p: Profile.getProfiles(rorg)) enums.add(link.tryToTranslate("enocean.profile."+p.name).replace(",", "%2C"));
+    		for (Profile p: Profile.getProfiles(rorg)) enums.add(link.tryToTranslate("enocean.profile."+p.name).replace(",", "%2C").replace("+", "%2B"));
     	}
-    	else enums.add(link.tryToTranslate("enocean.profile."+profile.name).replace(",", "%2C"));
+    	else enums.add(link.tryToTranslate("enocean.profile."+profile.name).replace(",", "%2C").replace("+", "%2B"));
     	act.addParameter(new Parameter("profile", ValueType.makeEnum(enums)));
     	act.addParameter(new Parameter("base id offset", ValueType.NUMBER));
     	devNode.createChild("add").setAction(act).build().setSerializable(false);
@@ -411,7 +411,7 @@ public class OceanConn implements EnOceanModuleListener {
 		}
 		public void handle(ActionResult event) {
 			String name = event.getParameter("name", ValueType.STRING).getString();
-			String profName = link.translateBack(event.getParameter("profile").getString().replace("%2C", ","));
+			String profName = link.translateBack(event.getParameter("profile").getString().replace("%2C", ",").replace("%2B", "+"));
 			Profile profile = Profile.getProfile(profName);
 			Value baseIdOffVal = event.getParameter("base id offset");
 			long baseIdOff;

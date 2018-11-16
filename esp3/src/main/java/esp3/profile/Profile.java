@@ -37,7 +37,7 @@ abstract public class Profile {
             addProfile(profile);
         }
 
-        addProfile(new A5_3F_81());
+//        addProfile(new A5_3F_81());
         
         addProfile(new A5_FF_FE());
         addProfile(new A5_FF_FF());

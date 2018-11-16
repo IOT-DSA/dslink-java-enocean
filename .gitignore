@@ -5,3 +5,4 @@ build
 # Intellij
 .idea
 *.iml
+/bin/

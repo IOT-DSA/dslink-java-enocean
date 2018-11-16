@@ -84,8 +84,8 @@ public class OceanDevice {
 		String sid = Long.toString(node.getAttribute("sender id").getNumber().longValue(), 16);
     	act.addParameter(new Parameter("sender id", ValueType.STRING, new Value(sid)));
     	Set<String> enums = new HashSet<String>();
-    	for (Profile p: Profile.values()) enums.add(conn.link.tryToTranslate("enocean.profile."+p.name).replace(",", "%2C"));
-    	String defprof = conn.link.tryToTranslate("enocean.profile."+node.getAttribute("profile").getString()).replace(",", "%2C");
+    	for (Profile p: Profile.values()) enums.add(conn.link.tryToTranslate("enocean.profile."+p.name).replace(",", "%2C").replace("+", "%2B"));
+    	String defprof = conn.link.tryToTranslate("enocean.profile."+node.getAttribute("profile").getString()).replace(",", "%2C").replace("+", "%2B");
     	act.addParameter(new Parameter("profile", ValueType.makeEnum(enums), new Value(defprof)));
     	String scode = Long.toString(node.getAttribute("security code").getNumber().longValue(), 16);
     	act.addParameter(new Parameter("security code", ValueType.STRING, new Value(scode)));
@@ -121,7 +121,7 @@ public class OceanDevice {
 	private class EditHandler implements Handler<ActionResult> {
 		public void handle(ActionResult event) {
 			String name = event.getParameter("name", ValueType.STRING).getString();
-			String profName = conn.link.translateBack(event.getParameter("profile").getString().replace("%2C", ","));
+			String profName = conn.link.translateBack(event.getParameter("profile").getString().replace("%2C", ",").replace("%2B", "+"));
 			profile = Profile.getProfile(profName);
 			long senderId = Long.parseLong(event.getParameter("sender id", ValueType.STRING).getString(), 16);
 			long security = Long.parseLong(event.getParameter("security code", ValueType.STRING).getString(), 16);
