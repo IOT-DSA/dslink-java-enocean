@@ -9,7 +9,7 @@ In order to talk to EnOcean devices, you first need to connect an EnOcean transc
 
  
 
-cid:e778701b-749b-405a-8783-bfd17f1a3ca2
+![](docs/enoceanstep1.PNG)
 
  
 
@@ -17,7 +17,8 @@ This will create a connection node, which has a child node called "Discovery". N
 
  
 
-cid:6e2b9e3d-b23f-41b9-b0b2-7f1c3e626bd6
+
+![](docs/enoceanstep2.PNG)
 
  
 
@@ -25,14 +26,14 @@ In order to interact with the device, we must first add it to our list of device
 
  
 
-cid:3b7ac3b2-4ccf-4c23-8762-8d54e330f9a1
 
+![](docs/enoceanstep3.PNG)
  
 
 Invoking the "add" action will remove the temporary node from "Disovery" and create a new node under "Devices". This device node exposes the device's capabilities.
 
  
 
-cid:a2b361a2-0619-46f9-b077-aa75810c5a0e
+![](docs/enoceanstep4.PNG)
 
  
